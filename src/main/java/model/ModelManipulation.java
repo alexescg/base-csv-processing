@@ -148,7 +148,6 @@ public class ModelManipulation {
                 Method setter = crime.getClass().getMethod("set" + capitalize(field), String.class);
                 setter.invoke(crime, expected);
             }
-            ;
 
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             e.printStackTrace();

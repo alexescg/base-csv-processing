@@ -21,9 +21,9 @@ public class ExamenMineriaApplication {
         crimeRecords.fixOffenseValues();
         crimeRecords.fixMonthValues();
         csv.stream().forEach(System.out::println);
-        System.out.println(crimeRecords.getRecords().stream().map(crime -> crime.getYear()).distinct().collect(Collectors.toList()));
+        //System.out.println(crimeRecords.getRecords().stream().map(crime -> crime.getYear()).distinct().collect(Collectors.toList()));
         //System.out.println(crimeRecords.getModeFromField("shift"));
-
+        Output.writeNewCsv("output.csv", crimeRecords.getRecords());
     }
 
 }
