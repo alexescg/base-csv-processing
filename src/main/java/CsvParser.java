@@ -1,44 +1,42 @@
 import com.univocity.parsers.common.processor.BeanListProcessor;
-import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
+import model.Crime;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
 /**
- * Created by alexescg on 9/11/16.
+ * @author alexescg
+ * @version 1.0
+ * @since 9/13/2016
  */
-public class Parser<T>{
-
-    private Class<T> modelClass;
+public class CsvParser {
 
     private CsvParserSettings settings;
-    private BeanListProcessor<T> processor;
+    private BeanListProcessor<Crime> processor;
     final private String filePath;
 
-    public Parser(String filePath, Class<T> modelClass) {
+    public CsvParser(String filePath) {
         this.filePath = filePath;
         configureParserSettings();
-        this.modelClass = modelClass;
     }
 
     private void configureParserSettings() {
         settings = new CsvParserSettings();
         settings.setLineSeparatorDetectionEnabled(true);
         settings.setHeaderExtractionEnabled(true);
-        settings.setMaxCharsPerColumn(200000);
+        settings.setMaxCharsPerColumn(200);
 
-        processor = new BeanListProcessor<>(modelClass);
+        processor = new BeanListProcessor<>(Crime.class);
         settings.setProcessor(processor);
     }
 
-    public List<T> parseCsv() {
-        CsvParser parser = new CsvParser(settings);
+    public List<Crime> parseCsv() {
+        com.univocity.parsers.csv.CsvParser parser = new com.univocity.parsers.csv.CsvParser(settings);
         parser.parseAll(getReader(filePath));
-        List<T> records = processor.getBeans();
+        List<Crime> records = processor.getBeans();
         return records;
 
     }
@@ -50,5 +48,4 @@ public class Parser<T>{
             throw new IllegalStateException("Unable to read input", e);
         }
     }
-
 }
