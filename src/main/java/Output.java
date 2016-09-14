@@ -24,7 +24,7 @@ public class Output {
 
         writer.writeHeaders("year", "month", "week", "hour", "report_date", "shift", "offense", "method", "district");
 
-        for (int i = 1; i < rows.size(); i++) {
+        for (int i = 0; i < rows.size(); i++) {
             String crimeRow = new StringBuilder()
                     .append(rows.get(i).getYear()).append(",")
                     .append(rows.get(i).getMonth()).append(",")

@@ -105,6 +105,20 @@ public class ModelManipulation {
         });
     }
 
+    private void shouldBe(Crime crime, String field, String expected, String... available) {
+        try {
+            Method getter = crime.getClass().getMethod("get" + capitalize(field));
+            if (Arrays.asList(available).contains(getter.invoke(crime))) {
+                Method setter = crime.getClass().getMethod("set" + capitalize(field), String.class);
+                setter.invoke(crime, expected);
+            }
+
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     public void setShiftAccordingToHour(Crime crime) {
         if (crime.getHour() > 6 && crime.getHour() <= 12) {
             crime.setShift("DAY");
@@ -141,70 +155,16 @@ public class ModelManipulation {
         });
     }
 
-    private void shouldBe(Crime crime, String field, String expected, String... available) {
-        try {
-            Method getter = crime.getClass().getMethod("get" + capitalize(field));
-            if (Arrays.asList(available).contains(getter.invoke(crime))) {
-                Method setter = crime.getClass().getMethod("set" + capitalize(field), String.class);
-                setter.invoke(crime, expected);
-            }
 
-        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-
-    }
 
     public void fixMonthValues() {
         this.getRecords().stream().forEach(crime -> {
             monthNameToNumber(crime);
             monthNotInYearToReportDate(crime);
-            formulateValidDate(crime);
             yearNotRecentFromReportDate(crime);
+            formulateValidDate(crime);
         });
 
-    }
-
-    private void formulateValidDate(Crime crime) {
-        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy");
-        String[] mdy = crime.getReport_date().split("/");
-
-        Integer month = Integer.parseInt(mdy[0]);
-        Integer day = Integer.parseInt(mdy[1]);
-        Integer year = Integer.parseInt(mdy[2]);
-
-        crime.setReport_date(new StringBuilder()
-                .append(month).append("/")
-                .append(day).append("/")
-                .append(year).toString());
-    }
-
-    private void yearNotRecentFromReportDate(Crime crime) {
-        if (isCrimeRecent(crime)) {
-            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
-            try {
-                Date reportDate = (Date) sdf.parseObject(crime.getReport_date());
-                crime.setYear(reportDate.getYear() + 1900);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private Boolean isCrimeRecent(Crime crime) {
-        return Integer.parseInt(crime.getMonth()) > 2017 || Integer.parseInt(crime.getMonth()) < 2000;
-    }
-
-    private void monthNotInYearToReportDate(Crime crime) {
-        if (Integer.parseInt(crime.getMonth()) > 12) {
-            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
-            try {
-                Date reportDate = (Date) sdf.parseObject(crime.getReport_date());
-                crime.setMonth("" + reportDate.getMonth());
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     private void monthNameToNumber(Crime crime) {
@@ -263,62 +223,45 @@ public class ModelManipulation {
         }
     }
 
-//    public void filterApartmentListings() {
-//        listings = listings
-//                .stream()
-//                .filter(listing -> listing.getProperty_type() != null)
-//                .filter(listing -> listing.getProperty_type().equals("Apartment"))
-//                .collect(Collectors.toList());
-//    }
-//
-//    private BigDecimal toDollars(String amount) {
-//        final NumberFormat format = NumberFormat.getNumberInstance(Locale.US);
-//        if (format instanceof DecimalFormat) {
-//            ((DecimalFormat) format).setParseBigDecimal(true);
-//        }
-//        try {
-//            return (BigDecimal) format.parse(amount.replaceAll("[^\\d.,]", ""));
-//        } catch (ParseException e) {
-//            e.printStackTrace();
-//            return BigDecimal.ZERO;
-//        }
-//    }
-//
-//    /**
-//     * Using the average obtained from daily and weekly prices from apartments, calculate using average estimate of a weekly price in case there is none stated.
-//     */
-//    public void fillMissingWeeklyPrices() {
-//        BigDecimal weeklyPriceIncrease = getWeeklyPriceIncreaseAsPercent();
-//        listings.stream().filter(listing -> listing.getWeekly_price() == null).forEach(listing -> {
-//            listing.setWeekly_price(new StringBuilder("$").append(toDollars(listing.getPrice()).multiply(weeklyPriceIncrease).toString()).toString());
-//        });
-//    }
-//
-//    private BigDecimal getWeeklyPriceIncreaseAsPercent() {
-//        return getWeeklyPriceAverage().divide(getDailyPriceAverage(), 2, RoundingMode.HALF_UP);
-//    }
-//
-//    private BigDecimal getDailyPriceAverage() {
-//        return listings.stream()
-//                .map(listing -> toDollars(listing.getPrice()))
-//                .reduce(BigDecimal.ZERO, BigDecimal::add)
-//                .divide(new BigDecimal(listings.size()), 2, RoundingMode.HALF_UP);
-//
-//    }
-//
-//    private BigDecimal getWeeklyPriceAverage() {
-//        return listings.stream()
-//                .filter(listing -> listing.getWeekly_price() != null)
-//                .map(listing -> toDollars(listing.getWeekly_price()))
-//                .reduce(BigDecimal.ZERO, BigDecimal::add)
-//                .divide(new BigDecimal(listings.stream().filter(listing -> listing.getWeekly_price() != null).count()), 2, RoundingMode.HALF_UP);
-//    }
-//
-//    public void fetchWeeklyPrices() {
-//        listings.stream().forEach(listing -> System.out.println(
-//                new StringBuilder("type: ").append(listing.getProperty_type())
-//                        .append(" daily: ").append(listing.getPrice())
-//                        .append(" weekly: ").append(listing.getWeekly_price())));
-//    }
+    private void monthNotInYearToReportDate(Crime crime) {
+        if (Integer.parseInt(crime.getMonth()) > 12) {
+            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+            try {
+                Date reportDate = (Date) sdf.parseObject(crime.getReport_date());
+                crime.setMonth("" + reportDate.getMonth());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void yearNotRecentFromReportDate(Crime crime) {
+        if (isCrimeRecent(crime)) {
+            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+            try {
+                Date reportDate = (Date) sdf.parseObject(crime.getReport_date());
+                crime.setYear(reportDate.getYear() + 1900);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private Boolean isCrimeRecent(Crime crime) {
+        return Integer.parseInt(crime.getMonth()) > 2017 || Integer.parseInt(crime.getMonth()) < 2000;
+    }
+
+    private void formulateValidDate(Crime crime) {
+        String[] mdy = crime.getReport_date().split("/");
+
+        Integer month = Integer.parseInt(mdy[0]);
+        Integer day = Integer.parseInt(mdy[1]);
+        Integer year = Integer.parseInt(mdy[2]);
+
+        crime.setReport_date(new StringBuilder()
+                .append(month).append("/")
+                .append(day).append("/")
+                .append(year).toString());
+    }
 
 }
